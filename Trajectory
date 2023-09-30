@@ -1,0 +1,66 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Constants
+initial_velocity = 0  # m/s
+v_max = 25 / 3.6  # m/s
+acceleration = 0.1  # m/s^2
+deceleration = -0.15  # m/s^2
+total_distance = 3820  # m
+stops = [1000, 185, 425, 300, 300, 425, 185, 1000]  # Distances to stop in meters
+
+# Initialize lists to store distance and speed data
+distances = [0]
+speeds = [0]
+
+# Generate speed vs. distance profile
+for stop_distance in stops:
+    # Calculate time taken to reach v_max with constant acceleration
+    t_acceleration = (v_max - initial_velocity) / acceleration
+
+    # Calculate distance covered during acceleration phase
+    d_acceleration = 0.5 * acceleration * t_acceleration**2
+
+    # Calculate time taken to stop from v_max with constant deceleration
+    t_deceleration = v_max / abs(deceleration)
+
+    # Calculate distance covered during deceleration phase
+    d_deceleration = 0.5 * abs(deceleration) * t_deceleration**2
+
+    # Calculate total time for the stop
+    total_time = t_acceleration + t_deceleration
+
+    # Calculate velocity and distance for each time step
+    time_step = 0.1  # Time step for simulation
+    t = 0
+    while t <= total_time:
+        if t <= t_acceleration:
+            v = initial_velocity + acceleration * t
+        elif t <= (total_time - t_deceleration):
+            v = v_max
+        else:
+            v = v_max + deceleration * (t - (total_time - t_deceleration))
+
+        x = initial_velocity * t + 0.5 * acceleration * t**2 if t <= t_acceleration else (
+            d_acceleration + v_max * (t - t_acceleration) if t <= (total_time - t_deceleration) else (
+                total_distance - 0.5 * abs(deceleration) * (total_time - t)**2
+            )
+        )
+
+        distances.append(x)
+        speeds.append(v)
+
+        t += time_step
+
+    # Update initial conditions for the next stop
+    initial_velocity = v_max
+    total_distance -= stop_distance
+
+# Plotting the velocity-distance profile
+plt.figure(figsize=(10, 6))
+plt.plot(distances, speeds)
+plt.title('Velocity-Distance Profile')
+plt.xlabel('Distance (m)')
+plt.ylabel('Velocity (m/s)')
+plt.grid(True)
+plt.show()
